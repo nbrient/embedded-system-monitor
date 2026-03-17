@@ -4,3 +4,7 @@ generic_config:
 cpu_config:
   enable_acquisition: 1
   timer: 5
+
+mem_config:
+  enable_acquisition: 1
+  timer: 5

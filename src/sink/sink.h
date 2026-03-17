@@ -35,4 +35,11 @@ extern void sink_init(LogTarget target);
  */
 extern void sink_log_cpu(const CpuMetrics *cpuMetrics);
 
+/**
+ * @brief Log a memory metrics snapshot to the active backend.
+ *
+ * @param memStats  Snapshot produced by the memory collector. Must not be NULL.
+ */
+extern void sink_log_mem(const MemStats *memStats);
+
 #endif /* SINK_H */

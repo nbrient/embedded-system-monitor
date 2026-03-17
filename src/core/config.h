@@ -2,9 +2,6 @@
  * @file config.h
  *
  * @brief YAML configuration loader for embedded-monitor.
- *
- * Parses @c monitor.yaml via libcyaml and exposes a MonitorCfg
- * structure consumed by the sink and each collector.
  */
 
 #ifndef CORE_CONFIG_H
@@ -56,6 +53,7 @@ typedef struct {
 typedef struct {
     LogTarget    logTarget; /**< Active logging backend. */
     CollectorCfg cpu;       /**< CPU collector configuration. */
+    CollectorCfg mem;       /**< Memory collector configuration. */
 } MonitorCfg;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -67,19 +65,15 @@ typedef struct {
 /**
  * @brief Override the config file path.
  *
- * Accepts a full @c .yaml path or a directory (CONFIG_FILENAME is appended).
- *
  * @param path  Path to the YAML file or its parent directory.
  */
 extern void config_set_path(const char *path);
 
-/**
- * @brief Use the compiled-in default path (DEFAULT_CONFIG_DIR / CONFIG_FILENAME).
- */
+/** @brief Use the compiled-in default path. */
 extern void config_use_default_path(void);
 
 /**
- * @brief Parse the YAML config file and return a populated MonitorCfg.
+ * @brief Parse the YAML config and return a populated MonitorCfg.
  *
  * Falls back to built-in defaults on any parse error.
  *

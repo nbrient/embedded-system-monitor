@@ -128,3 +128,61 @@ static void syslog_log_cpu(const CpuMetrics *cpuMetrics) {
            cpuMetrics->load1min, cpuMetrics->load5min, cpuMetrics->load15min);
     closelog();
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//                                              Static functions — Memory
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void journalctl_log_mem(const MemStats *memStats);
+static void syslog_log_mem(const MemStats *memStats);
+
+extern void sink_log_mem(const MemStats *memStats) {
+    if (activeTarget == LOG_TARGET_SYSLOG) {
+        syslog_log_mem(memStats);
+    } else {
+        journalctl_log_mem(memStats);
+    }
+}
+
+/**
+ * @brief Write a memory snapshot to the systemd journal.
+ *
+ * Formats the key MemStats fields into a single MEM_STATS journal field.
+ *
+ * @param memStats  Memory metrics snapshot. Must not be NULL.
+ */
+static void journalctl_log_mem(const MemStats *memStats) {
+    char buf[1024];
+    snprintf(buf, sizeof(buf),
+        "MemTotal:%lu MemFree:%lu MemAvail:%lu Buffers:%lu Cached:%lu "
+        "SwapTotal:%lu SwapFree:%lu Active:%lu Inactive:%lu Shmem:%lu Slab:%lu",
+        memStats->memTotal,     memStats->memFree,
+        memStats->memAvailable, memStats->buffers,
+        memStats->cached,       memStats->swapTotal,
+        memStats->swapFree,     memStats->active,
+        memStats->inactive,     memStats->shmem,
+        memStats->slab);
+
+    sd_journal_send(
+        "MESSAGE=memory metrics snapshot",
+        "MESSAGE_ID=510ce2bb9c3c407092acbbec567f4593",
+        "PRIORITY=5",
+        "MEM_STATS=%s", buf,
+        NULL);
+}
+
+/**
+ * @brief Write a memory snapshot to syslog.
+ *
+ * Logs only the three most-used fields (detailed data requires journalctl).
+ *
+ * @param memStats  Memory metrics snapshot. Must not be NULL.
+ */
+static void syslog_log_mem(const MemStats *memStats) {
+    openlog("embedded-monitor", LOG_PID, LOG_DAEMON);
+    syslog(LOG_INFO, "mem total=%lu free=%lu avail=%lu",
+           memStats->memTotal, memStats->memFree, memStats->memAvailable);
+    closelog();
+}

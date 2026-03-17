@@ -50,3 +50,40 @@ typedef struct {
 } CpuMetrics;
 
 #endif /* CORE_TYPES_H */
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//                                              Memory types
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @brief Key fields from /proc/meminfo, all values in kB.
+ *
+ * Fields are populated by key-dispatch in the memory collector.
+ * Unrecognised /proc/meminfo lines are silently ignored.
+ */
+typedef struct {
+    uint64_t memTotal;     /**< Total usable RAM. */
+    uint64_t memFree;      /**< Free RAM (not including caches). */
+    uint64_t memAvailable; /**< Estimated RAM available for new processes. */
+    uint64_t buffers;      /**< Kernel I/O buffers. */
+    uint64_t cached;       /**< Page cache (excluding SwapCached). */
+    uint64_t swapCached;   /**< Swap space used as cache. */
+    uint64_t active;       /**< Recently used memory, not easily reclaimed. */
+    uint64_t inactive;     /**< Memory not recently used. */
+    uint64_t swapTotal;    /**< Total swap space. */
+    uint64_t swapFree;     /**< Unused swap space. */
+    uint64_t dirty;        /**< Memory waiting to be written back to disk. */
+    uint64_t writeback;    /**< Memory actively being written back. */
+    uint64_t shmem;        /**< Shared memory (tmpfs). */
+    uint64_t slab;         /**< In-kernel data-structure cache. */
+    uint64_t sReclaimable; /**< Reclaimable portion of slab. */
+    uint64_t sUnreclaim;   /**< Non-reclaimable portion of slab. */
+    uint64_t kernelStack;  /**< Memory used for kernel stacks. */
+    uint64_t pageTables;   /**< Memory used by page tables. */
+    uint64_t vmallocTotal; /**< Total vmalloc address space size. */
+    uint64_t vmallocUsed;  /**< Used vmalloc space. */
+    uint64_t commitLimit;  /**< Total RAM + swap available for allocation. */
+    uint64_t committed;    /**< Committed virtual address space (Committed_AS). */
+} MemStats;
