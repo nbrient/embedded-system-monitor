@@ -8,3 +8,7 @@ cpu_config:
 mem_config:
   enable_acquisition: 1
   timer: 5
+
+irq_config:
+  enable_acquisition: 1
+  timer: 5

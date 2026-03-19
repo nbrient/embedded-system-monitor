@@ -87,3 +87,29 @@ typedef struct {
     uint64_t commitLimit;  /**< Total RAM + swap available for allocation. */
     uint64_t committed;    /**< Committed virtual address space (Committed_AS). */
 } MemStats;
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//                                              IRQ types
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/** @brief Maximum length of an interrupt ID string, including the NUL terminator. */
+#define IRQ_ID_LEN   8
+
+/** @brief Maximum length of an interrupt description string, including the NUL terminator. */
+#define IRQ_DESC_LEN 128
+
+/**
+ * @brief One interrupt line with absolute and delta per-CPU counters.
+ *
+ * @c rawPerCpu stores the absolute count from /proc/interrupts.
+ * @c deltaPerCpu stores the difference since the last acquisition,
+ * computed as @c raw - @c raw_previous at each tick.
+ */
+typedef struct {
+    char     id[IRQ_ID_LEN];            /**< Interrupt identifier (e.g. "16", "NMI"). */
+    uint32_t *deltaPerCpu;              /**< Counts since last snapshot, array [nbCpu]. */
+    uint32_t *rawPerCpu;                /**< Absolute counts from /proc, array [nbCpu]. */
+    char     description[IRQ_DESC_LEN]; /**< Human-readable interrupt description. */
+} IrqEntry;

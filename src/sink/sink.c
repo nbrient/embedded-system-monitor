@@ -186,3 +186,80 @@ static void syslog_log_mem(const MemStats *memStats) {
            memStats->memTotal, memStats->memFree, memStats->memAvailable);
     closelog();
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//                                              Static functions — IRQ
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void journalctl_log_irq(const IrqEntry *irqData, uint8_t nbLines, uint8_t nbCpu, bool firstAcq);
+static void syslog_log_irq(const IrqEntry *irqData, uint8_t nbLines, uint8_t nbCpu, bool firstAcq);
+
+extern void sink_log_irq(const IrqEntry *irqData, uint8_t nbLines,
+                          uint8_t nbCpu, bool firstAcq) {
+    if (activeTarget == LOG_TARGET_SYSLOG) {
+        syslog_log_irq(irqData, nbLines, nbCpu, firstAcq);
+    } else {
+        journalctl_log_irq(irqData, nbLines, nbCpu, firstAcq);
+    }
+}
+
+/**
+ * @brief Write an IRQ snapshot to the systemd journal.
+ *
+ * Skips unchanged lines (deltaPerCpu all zero) unless firstAcq is true.
+ *
+ * @param irqData   IRQ entry array. Must not be NULL.
+ * @param nbLines   Number of entries.
+ * @param nbCpu     Number of online CPUs.
+ * @param firstAcq  If true, log all lines regardless of delta.
+ */
+static void journalctl_log_irq(const IrqEntry *irqData, uint8_t nbLines,
+                                 uint8_t nbCpu, bool firstAcq) {
+    char irqDataStr[8192] = "";
+
+    for (uint8_t i = 0; i < nbLines; i++) {
+        bool hasChanged = false;
+        for (uint8_t k = 0; k < nbCpu; k++) {
+            if (irqData[i].deltaPerCpu[k] != 0) { hasChanged = true; break; }
+        }
+        if (hasChanged == false && firstAcq == false) continue;
+
+        char line[512];
+        int pos = snprintf(line, sizeof(line), "id:%s\t", irqData[i].id);
+        for (uint8_t k = 0; k < nbCpu; k++) {
+            pos += snprintf(line + pos, sizeof(line) - pos,
+                            "cpu%u:%u\t", k, irqData[i].deltaPerCpu[k]);
+        }
+        snprintf(line + pos, sizeof(line) - pos,
+                 "description:%s\n", irqData[i].description);
+        strncat(irqDataStr, line, sizeof(irqDataStr) - strlen(irqDataStr) - 1);
+    }
+
+    sd_journal_send(
+        "MESSAGE=irq metrics snapshot",
+        "MESSAGE_ID=5dc39e996fd64d0d9acbbeee1db3fd4b",
+        "PRIORITY=5",
+        "NB_CPUS=%u", (unsigned)nbCpu,
+        "IRQ_DATA=%s", irqDataStr,
+        NULL);
+}
+
+/**
+ * @brief Write an IRQ snapshot to syslog.
+ *
+ * Logs only the CPU count (detailed data requires journalctl).
+ *
+ * @param irqData   IRQ entry array (unused for syslog detail).
+ * @param nbLines   Number of entries (unused for syslog detail).
+ * @param nbCpu     Number of online CPUs.
+ * @param firstAcq  First acquisition flag (unused for syslog detail).
+ */
+static void syslog_log_irq(const IrqEntry *irqData, uint8_t nbLines,
+                             uint8_t nbCpu, bool firstAcq) {
+    (void)irqData; (void)nbLines; (void)firstAcq;
+    openlog("embedded-monitor", LOG_PID, LOG_DAEMON);
+    syslog(LOG_INFO, "irq snapshot nbcpu=%u", (unsigned)nbCpu);
+    closelog();
+}
