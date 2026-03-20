@@ -12,6 +12,7 @@
 #include "collectors/cpu/cpu_collector.h"
 #include "collectors/mem/mem_collector.h"
 #include "collectors/irq/irq_collector.h"
+#include "collectors/proc/proc_collector.h"
 #include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -45,9 +46,11 @@ int main(int argc, char *argv[]) {
     returnErr  = cpu_collector_new(cfg.cpu);
     returnErr |= mem_collector_new(cfg.mem);
     returnErr |= irq_collector_new(cfg.irq);
+    returnErr |= proc_collector_new(cfg.proc);
     CHECK_ERR(returnErr < 0, "[Main] Error during collector init");
     if (returnErr < 0) return EXIT_FAILURE;
-    cpu_collector_ask_start(); mem_collector_ask_start(); irq_collector_ask_start();
+    cpu_collector_ask_start(); mem_collector_ask_start();
+    irq_collector_ask_start(); proc_collector_ask_start();
     LOG("embedded-monitor running — Ctrl-C or 'q' to quit\n");
     pthread_mutex_lock(&mainMutex);
     while (shutdownFlag == false) {
@@ -60,8 +63,10 @@ int main(int argc, char *argv[]) {
         }
     }
     pthread_mutex_unlock(&mainMutex);
-    cpu_collector_ask_stop(); mem_collector_ask_stop(); irq_collector_ask_stop();
-    cpu_collector_free();     mem_collector_free();     irq_collector_free();
+    cpu_collector_ask_stop();  mem_collector_ask_stop();
+    irq_collector_ask_stop();  proc_collector_ask_stop();
+    cpu_collector_free();      mem_collector_free();
+    irq_collector_free();      proc_collector_free();
     pthread_mutex_destroy(&mainMutex); pthread_cond_destroy(&mainCond);
     LOG("embedded-monitor stopped\n"); return EXIT_SUCCESS;
 }

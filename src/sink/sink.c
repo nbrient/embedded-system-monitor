@@ -263,3 +263,67 @@ static void syslog_log_irq(const IrqEntry *irqData, uint8_t nbLines,
     syslog(LOG_INFO, "irq snapshot nbcpu=%u", (unsigned)nbCpu);
     closelog();
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//                                              Static functions — Process
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void journalctl_log_proc(const ProcStatEntry *procData, uint16_t nbProcess);
+static void syslog_log_proc(const ProcStatEntry *procData, uint16_t nbProcess);
+
+extern void sink_log_proc(const ProcStatEntry *procData, uint16_t nbProcess) {
+    if (activeTarget == LOG_TARGET_SYSLOG) {
+        syslog_log_proc(procData, nbProcess);
+    } else {
+        journalctl_log_proc(procData, nbProcess);
+    }
+}
+
+/**
+ * @brief Write a process snapshot to the systemd journal.
+ *
+ * Formats pid, comm, state, ppid, utime, stime and thread count
+ * for each process into a single PROCESS_DATA journal field.
+ *
+ * @param procData   Process entry array. Must not be NULL.
+ * @param nbProcess  Number of entries in procData.
+ */
+static void journalctl_log_proc(const ProcStatEntry *procData, uint16_t nbProcess) {
+    char processLine[300]   = "";
+    char procDataStr[50000] = "";
+
+    for (uint16_t i = 0; i < nbProcess; i++) {
+        strcpy(processLine, "");
+        snprintf(processLine, sizeof(processLine),
+            "pid:%hu\tcomm:%s\tstate:%c\tppid:%hu\tutime:%u\tstime:%u\tthreads:%u\n",
+            procData[i].pid,        procData[i].comm,
+            procData[i].state,      procData[i].ppid,
+            procData[i].utime,      procData[i].stime,
+            procData[i].numThreads);
+        strncat(procDataStr, processLine, sizeof(procDataStr) - strlen(procDataStr) - 1);
+    }
+
+    sd_journal_send(
+        "MESSAGE=process metrics snapshot",
+        "MESSAGE_ID=35fd4cc7bd5e419d801a090eb084693f",
+        "PRIORITY=5",
+        "PROCESS_DATA=%s", procDataStr,
+        NULL);
+}
+
+/**
+ * @brief Write a process snapshot to syslog.
+ *
+ * Logs only the process count (detailed data requires journalctl).
+ *
+ * @param procData   Process entry array (unused for syslog detail).
+ * @param nbProcess  Number of processes.
+ */
+static void syslog_log_proc(const ProcStatEntry *procData, uint16_t nbProcess) {
+    (void)procData;
+    openlog("embedded-monitor", LOG_PID, LOG_DAEMON);
+    syslog(LOG_INFO, "proc snapshot nbprocess=%u", (unsigned)nbProcess);
+    closelog();
+}

@@ -113,3 +113,27 @@ typedef struct {
     uint32_t *rawPerCpu;                /**< Absolute counts from /proc, array [nbCpu]. */
     char     description[IRQ_DESC_LEN]; /**< Human-readable interrupt description. */
 } IrqEntry;
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//                                              Process types
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @brief Subset of /proc/[pid]/stat fields relevant for monitoring.
+ *
+ * The ~30 unused stat fields are skipped with %*u in the sscanf call.
+ */
+typedef struct {
+    uint16_t pid;        /**< Process ID. */
+    char     comm[64];   /**< Executable name (without surrounding parentheses). */
+    char     state;      /**< Process state character: R, S, D, Z, T, etc. */
+    uint16_t ppid;       /**< Parent process ID. */
+    uint32_t utime;      /**< User-mode CPU time in jiffies. */
+    uint32_t stime;      /**< Kernel-mode CPU time in jiffies. */
+    uint32_t numThreads; /**< Number of threads in this process group. */
+    uint32_t priority;   /**< Scheduling priority value. */
+    uint32_t vsize;      /**< Virtual memory size in bytes. */
+    uint32_t rss;        /**< Resident set size in pages. */
+} ProcStatEntry;

@@ -33,6 +33,7 @@ typedef struct {
     CollectorCfg cpu;       /**< CPU collector configuration. */
     CollectorCfg mem;       /**< Memory collector configuration. */
     CollectorCfg irq;       /**< IRQ collector configuration. */
+    CollectorCfg proc;      /**< Process collector configuration. */
 } MonitorCfg;
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                              Public functions

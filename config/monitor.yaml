@@ -12,3 +12,7 @@ mem_config:
 irq_config:
   enable_acquisition: 1
   timer: 5
+
+proc_config:
+  enable_acquisition: 1
+  timer: 5

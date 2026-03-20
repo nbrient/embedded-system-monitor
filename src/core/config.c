@@ -3,9 +3,6 @@
  * @brief YAML configuration loader implementation.
  * @version 1.0
  */
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                              Include
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "config.h"
 #include "debug.h"
 #include <string.h>
@@ -33,6 +30,7 @@ static const cyaml_schema_field_t monitorCfgSchema[] = {
     CYAML_FIELD_MAPPING("cpu_config",CYAML_FLAG_DEFAULT,MonitorCfg,cpu,collectorCfgSchema),
     CYAML_FIELD_MAPPING("mem_config",CYAML_FLAG_DEFAULT,MonitorCfg,mem,collectorCfgSchema),
     CYAML_FIELD_MAPPING("irq_config",CYAML_FLAG_DEFAULT,MonitorCfg,irq,collectorCfgSchema),
+    CYAML_FIELD_MAPPING("proc_config",CYAML_FLAG_DEFAULT,MonitorCfg,proc,collectorCfgSchema),
     CYAML_FIELD_END
 };
 /** @brief CYAML value schema for the root YAML document. */
@@ -42,16 +40,16 @@ static const cyaml_config_t cyamlCfg={.log_fn=cyaml_log,.mem_fn=cyaml_mem,.log_l
 /** @brief Fill @p cfg with safe built-in defaults. @param cfg Output struct. */
 static void apply_defaults(MonitorCfg *cfg){
     cfg->logTarget=LOG_TARGET_JOURNALCTL;
-    cfg->cpu.enabled=true; cfg->cpu.intervalSec=5;
-    cfg->mem.enabled=true; cfg->mem.intervalSec=5;
-    cfg->irq.enabled=true; cfg->irq.intervalSec=5;
+    cfg->cpu.enabled=true;  cfg->cpu.intervalSec=5;
+    cfg->mem.enabled=true;  cfg->mem.intervalSec=5;
+    cfg->irq.enabled=true;  cfg->irq.intervalSec=5;
+    cfg->proc.enabled=true; cfg->proc.intervalSec=5;
 }
 extern void config_set_path(const char *path){
     size_t len=strlen(path);
     if(len>5&&strcmp(path+len-5,".yaml")==0){snprintf(configFilePath,sizeof(configFilePath),"%s",path);}
     else{
-        char dir[256]; snprintf(dir,sizeof(dir),"%s",path);
-        size_t dlen=strlen(dir);
+        char dir[256]; snprintf(dir,sizeof(dir),"%s",path); size_t dlen=strlen(dir);
         while(dlen>0&&dir[dlen-1]=='/') dir[--dlen]='\0';
         snprintf(configFilePath,sizeof(configFilePath),"%s/%s",dir,CONFIG_FILENAME);
     }
