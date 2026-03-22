@@ -13,7 +13,7 @@ LICENSE     = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=231fb0970ed5a88aa921f3ab2e148cc8"
 
 SRC_URI = "git://github.com/nbrient/embedded-monitor.git;protocol=https;branch=main"
-SRCREV = "ae969b89eed422469e54c2ba15cbe1430f0baa92"
+SRCREV = "81709a81edda6c77e76c84641565051789f834c6"
 PV = "1.0.0+git${SRCPV}"
 S = "${WORKDIR}/git"
 
