@@ -29,8 +29,11 @@
  * @param fmt  printf-style format string.
  * @param ...  Optional format arguments.
  */
-#  define LOG(fmt, ...) \
-     do { fprintf(stderr, fmt, ##__VA_ARGS__); fflush(stderr); } while (0)
+#define LOG(fmt, ...)                                                          \
+  do {                                                                         \
+    fprintf(stderr, fmt, ##__VA_ARGS__);                                       \
+    fflush(stderr);                                                            \
+  } while (0)
 
 /**
  * @brief Report an error when @p cond is true.
@@ -41,11 +44,17 @@
  * @param cond  Boolean condition — report fires when true.
  * @param msg   Human-readable error label (no trailing newline required).
  */
-#  define CHECK_ERR(cond, msg) \
-     do { if (cond) { \
-         if (errno != 0) { perror(msg); errno = 0; } \
-         else { fprintf(stderr, "%s\n", msg); } \
-     }} while (0)
+#define CHECK_ERR(cond, msg)                                                   \
+  do {                                                                         \
+    if (cond) {                                                                \
+      if (errno != 0) {                                                        \
+        perror(msg);                                                           \
+        errno = 0;                                                             \
+      } else {                                                                 \
+        fprintf(stderr, "%s\n", msg);                                          \
+      }                                                                        \
+    }                                                                          \
+  } while (0)
 
 /**
  * @brief Verbose trace — prints file, line, function name and message.
@@ -55,14 +64,22 @@
  * @param fmt  printf-style format string.
  * @param ...  Optional format arguments.
  */
-#  define TRACE(fmt, ...) \
-     do { fprintf(stderr, "%s:%d:%s(): " fmt, \
-          __FILE__, __LINE__, __func__, ##__VA_ARGS__); } while (0)
+#define TRACE(fmt, ...)                                                        \
+  do {                                                                         \
+    fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, __LINE__, __func__,          \
+            ##__VA_ARGS__);                                                    \
+  } while (0)
 
 #else
-#  define LOG(fmt, ...)     do {} while (0)
-#  define CHECK_ERR(c, msg) do {} while (0)
-#  define TRACE(fmt, ...)   do {} while (0)
+#define LOG(fmt, ...)                                                          \
+  do {                                                                         \
+  } while (0)
+#define CHECK_ERR(c, msg)                                                      \
+  do {                                                                         \
+  } while (0)
+#define TRACE(fmt, ...)                                                        \
+  do {                                                                         \
+  } while (0)
 #endif
 
 #endif /* CORE_DEBUG_H */
